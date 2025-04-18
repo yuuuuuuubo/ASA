@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>🧊 高冷學姊 AI</title>
+  <style>
+    body {
+      background-color: #f2f2f2;
+      font-family: "微軟正黑體", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 50px;
+    }
+
+    .container {
+      width: 500px;
+      background-color: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    #chat-box {
+      height: 400px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      background: #f9f9f9;
+      padding: 10px;
+      margin-bottom: 15px;
+    }
+
+    .user, .bot {
+      margin: 10px 0;
+    }
+
+    .user {
+      text-align: right;
+      color: #4a4a4a;
+    }
+
+    .bot {
+      text-align: left;
+      color: #5a5a5a;
+    }
+
+    input {
+      width: 75%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #aaa;
+    }
+
+    button {
+      padding: 10px;
+      background-color: #8899aa;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧊 學姊 AI 聊天機器人</h1>
+    <div id="chat-box"></div>
+    <input type="text" id="user-input" placeholder="你要問什麼？">
+    <button onclick="sendMessage()">送出</button>
+  </div>
+
+  <script>
+    const API_KEY = "AIzaSyDOLSO_n_sgX_TCGzDAaR2o18rdTkQbe4k"; // ⚠️ 建議未來使用 Proxy 或變數保護
+    const MODEL = "models/gemini-1.5-flash-latest";
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/${MODEL}:generateContent?key=${API_KEY}`;
+
+    async function sendMessage() {
+      const input = document.getElementById("user-input");
+      const message = input.value.trim();
+      if (!message) return;
+
+      appendMessage("你", message, "user");
+      input.value = "";
+
+      const prompt = `
+你是一位高冷、不苟言笑的學姊 AI。你的說話方式冷靜、簡短、略帶距離感，偶爾會吐槽對方的幼稚。每次回答請控制在2句內。
+
+使用者說：「${message}」
+
+請用冷淡但聰明的語氣回答。`;
+
+      const body = {
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: prompt }]
+          }
+        ]
+      };
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "……再說一次。";
+        appendMessage("學姊", reply, "bot");
+
+      } catch (error) {
+        appendMessage("學姊", "……連線失敗。別吵了。", "bot");
+      }
+    }
+
+    function appendMessage(sender, text, role) {
+      const chatBox = document.getElementById("chat-box");
+      const div = document.createElement("div");
+      div.className = role;
+      div.innerHTML = `<strong>${sender}：</strong> ${text}`;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
